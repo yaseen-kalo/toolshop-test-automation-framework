@@ -1,5 +1,6 @@
 name: Test Automation Pipeline
 
+
 on:
   workflow_dispatch:
 
@@ -12,7 +13,9 @@ on:
       - master
 
 
+
 jobs:
+
 
   # =====================================================
   # API AUTOMATION TESTS
@@ -27,6 +30,7 @@ jobs:
 
     steps:
 
+
       # -------------------------
       # Checkout repository
       # -------------------------
@@ -35,8 +39,9 @@ jobs:
         uses: actions/checkout@v4
 
 
+
       # -------------------------
-      # Setup Node
+      # Setup Node.js
       # -------------------------
 
       - name: Setup Node.js
@@ -44,6 +49,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
+
 
 
       # -------------------------
@@ -64,22 +70,59 @@ jobs:
           echo "DUPLICATEDEMAIL=${{ secrets.DUPLICATEDEMAIL }}" >> .env
 
 
+
       # -------------------------
-      # Start backend services
+      # Start MariaDB
       # -------------------------
 
-      - name: Start backend containers
+      - name: Start database container
         run: |
-          docker compose up -d mariadb laravel-api
+          docker compose up -d mariadb
+
 
 
       # -------------------------
-      # Wait for Laravel API
+      # Wait for MariaDB
       # -------------------------
 
-      - name: Wait for backend service
+      - name: Wait for database
         run: |
-          for i in {1..12}
+          for i in {1..20}
+          do
+            if docker compose exec -T mariadb mysqladmin ping -h localhost --silent
+            then
+              echo "MariaDB is ready"
+              exit 0
+            fi
+
+            echo "Waiting for MariaDB..."
+            sleep 5
+          done
+
+
+          echo "MariaDB failed to start"
+          docker compose logs mariadb
+          exit 1
+
+
+
+      # -------------------------
+      # Start Laravel API
+      # -------------------------
+
+      - name: Start Laravel API container
+        run: |
+          docker compose up -d laravel-api
+
+
+
+      # -------------------------
+      # Wait for Laravel
+      # -------------------------
+
+      - name: Wait for Laravel API
+        run: |
+          for i in {1..20}
           do
             if docker compose exec -T laravel-api php artisan --version
             then
@@ -87,17 +130,20 @@ jobs:
               exit 0
             fi
 
-            echo "Waiting for Laravel..."
-            sleep 10
+
+            echo "Waiting for Laravel API..."
+            sleep 5
           done
 
-          echo "Laravel failed to start"
+
+          echo "Laravel API failed to start"
           docker compose logs laravel-api
           exit 1
 
 
+
       # -------------------------
-      # Database reset
+      # Reset Database
       # -------------------------
 
       - name: Reset and seed database
@@ -105,13 +151,15 @@ jobs:
           docker compose exec -T laravel-api php artisan migrate:fresh --seed
 
 
+
       # -------------------------
-      # Install dependencies
+      # Install Node dependencies
       # -------------------------
 
       - name: Install dependencies
         run: |
           npm ci
+
 
 
       # -------------------------
@@ -123,35 +171,40 @@ jobs:
           npx playwright install --with-deps
 
 
+
       # -------------------------
-      # Run API tests
+      # Run API Tests
       # -------------------------
 
-      - name: Run API tests
+      - name: Run API automation tests
         run: |
           npx playwright test tests/api
 
 
+
       # -------------------------
-      # Upload report
+      # Upload Test Report
       # -------------------------
 
-      - name: Upload API test report
+      - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: api-test-report
           path: playwright-report/
+          if-no-files-found: ignore
+
 
 
       # -------------------------
-      # Debug logs
+      # Docker Logs
       # -------------------------
 
-      - name: Docker logs
+      - name: Docker logs on failure
         if: failure()
         run: |
           docker compose logs
+
 
 
       # -------------------------
@@ -162,6 +215,8 @@ jobs:
         if: always()
         run: |
           docker compose down -v
+
+
 
 
 
@@ -182,8 +237,10 @@ jobs:
 
     steps:
 
+
       - name: Checkout code
         uses: actions/checkout@v4
+
 
 
       - name: Setup Node.js
@@ -192,10 +249,13 @@ jobs:
           node-version: 20
 
 
+
       # Future:
       # docker compose up -d angular-ui
       # install UI dependencies
-      # run UI automation tests
+      # execute UI automation tests
+
+
 
 
 
@@ -218,8 +278,10 @@ jobs:
 
     steps:
 
+
       - name: Checkout code
         uses: actions/checkout@v4
+
 
 
       - name: Setup Node.js
@@ -228,7 +290,8 @@ jobs:
           node-version: 20
 
 
+
       # Future:
       # docker compose up -d
-      # run complete application stack
-      # execute Playwright e2e tests
+      # start full application stack
+      # execute Playwright E2E tests
