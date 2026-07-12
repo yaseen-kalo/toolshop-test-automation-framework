@@ -3,11 +3,11 @@ name: Test Automation Pipeline
 on:
   push:
     branches:
-      - main
+      - master
 
   pull_request:
     branches:
-      - main
+      - master
 
 
 jobs:
@@ -49,10 +49,17 @@ jobs:
       # -------------------------
 
       - name: Create environment file
-        run: |
-          echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" >> .env
-          echo "ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}" >> .env
-          echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" >> .env
+  run: |
+    echo "UI_BASE_URL=${{ secrets.UI_BASE_URL }}" >> .env
+    echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" >> .env
+
+    echo "ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}" >> .env
+    echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" >> .env
+
+    echo "CUSTOMER_EMAIL=${{ secrets.CUSTOMER_EMAIL }}" >> .env
+    echo "CUSTOMER_PASSWORD=${{ secrets.CUSTOMER_PASSWORD }}" >> .env
+
+    echo "DUPLICATEDEMAIL=${{ secrets.DUPLICATEDEMAIL }}" >> .env
 
 
       # -------------------------
