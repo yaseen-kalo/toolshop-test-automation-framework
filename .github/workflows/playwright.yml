@@ -1,6 +1,8 @@
 name: Test Automation Pipeline
 
 on:
+  workflow_dispatch:
+
   push:
     branches:
       - master
@@ -49,17 +51,17 @@ jobs:
       # -------------------------
 
       - name: Create environment file
-  run: |
-    echo "UI_BASE_URL=${{ secrets.UI_BASE_URL }}" >> .env
-    echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" >> .env
+        run: |
+          echo "UI_BASE_URL=${{ secrets.UI_BASE_URL }}" >> .env
+          echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" >> .env
 
-    echo "ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}" >> .env
-    echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" >> .env
+          echo "ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}" >> .env
+          echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" >> .env
 
-    echo "CUSTOMER_EMAIL=${{ secrets.CUSTOMER_EMAIL }}" >> .env
-    echo "CUSTOMER_PASSWORD=${{ secrets.CUSTOMER_PASSWORD }}" >> .env
+          echo "CUSTOMER_EMAIL=${{ secrets.CUSTOMER_EMAIL }}" >> .env
+          echo "CUSTOMER_PASSWORD=${{ secrets.CUSTOMER_PASSWORD }}" >> .env
 
-    echo "DUPLICATEDEMAIL=${{ secrets.DUPLICATEDEMAIL }}" >> .env
+          echo "DUPLICATEDEMAIL=${{ secrets.DUPLICATEDEMAIL }}" >> .env
 
 
       # -------------------------
@@ -104,7 +106,7 @@ jobs:
 
 
       # -------------------------
-      # Install Playwright dependencies
+      # Install dependencies
       # -------------------------
 
       - name: Install dependencies
@@ -112,13 +114,17 @@ jobs:
           npm ci
 
 
+      # -------------------------
+      # Install Playwright
+      # -------------------------
+
       - name: Install Playwright browsers
         run: |
           npx playwright install --with-deps
 
 
       # -------------------------
-      # Execute API tests
+      # Run API tests
       # -------------------------
 
       - name: Run API tests
@@ -139,7 +145,7 @@ jobs:
 
 
       # -------------------------
-      # Debug logs + cleanup
+      # Debug logs
       # -------------------------
 
       - name: Docker logs
@@ -147,6 +153,10 @@ jobs:
         run: |
           docker compose logs
 
+
+      # -------------------------
+      # Cleanup
+      # -------------------------
 
       - name: Cleanup containers
         if: always()
@@ -167,7 +177,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    if: false
+    if: ${{ false }}
 
 
     steps:
@@ -183,9 +193,9 @@ jobs:
 
 
       # Future:
-      # - Start angular-ui container
-      # - Install UI test dependencies
-      # - Run UI automation tests
+      # docker compose up -d angular-ui
+      # install UI dependencies
+      # run UI automation tests
 
 
 
@@ -203,7 +213,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    if: false
+    if: ${{ false }}
 
 
     steps:
